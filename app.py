@@ -521,12 +521,14 @@ elif page == "💊 Treatment Planner":
             sglt2_allergy = st.checkbox("Allergy to SGLT2 inhibitors ⚠️")
             glp1_ok    = st.checkbox("GLP-1 RA acceptable (no MTC/MEN2 history)", value=True)
         with col3:
-            obesity    = st.checkbox("BMI > 27 kg/m² (weight reduction priority)")
+            obesity      = st.checkbox("BMI > 27 kg/m² (weight reduction priority)")
             hypo_concern = st.checkbox("High hypoglycaemia concern (elderly, drives, works at height)")
             on_metformin = st.checkbox("Already on Metformin")
-            irregular  = st.checkbox("Irregular schedule / shift worker")
-            high_dose  = st.checkbox("Likely to need high insulin dose (> 60 U/day, BMI > 30)")
-            cost_pref  = st.selectbox("Cost preference", ["any","medium","low"])
+            irregular    = st.checkbox("Irregular schedule / shift worker")
+            high_dose    = st.checkbox("Likely to need high insulin dose (> 60 U/day, BMI > 30)")
+            has_nash_ir  = st.checkbox("NASH / NAFLD / PCOS / documented high HOMA-IR (specific indication for Pioglitazone)")
+            bladder_ca   = st.checkbox("History of bladder cancer ⚠️ (Pioglitazone contraindicated)")
+            cost_pref    = st.selectbox("Cost preference", ["any","medium","low"])
 
         submitted_t = st.form_submit_button("💊 Generate Treatment Plan", type="primary", use_container_width=True)
 
@@ -541,6 +543,7 @@ elif page == "💊 Treatment Planner":
             obesity=obesity, hypo_concern=hypo_concern,
             on_metformin=on_metformin, cost_preference=cost_pref,
             irregular_schedule=irregular, high_dose_need=high_dose,
+            has_nash_ir=has_nash_ir, bladder_cancer=bladder_ca,
         ))
 
         st.divider()
