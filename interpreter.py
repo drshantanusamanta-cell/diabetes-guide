@@ -149,15 +149,15 @@ def interpret_egfr(egfr: float, uacr: float = None) -> dict:
         colour = "green"
     elif egfr >= 60:
         stage = "G2 (Mildly reduced)"
-        mgmt  = "Annual UACR + eGFR. Metformin: full dose. SGLT2i: full dose but glucose-lowering effect reduces below 45."
+        mgmt  = "Annual UACR + eGFR. Metformin: full dose. SGLT2i: full dose for glucose lowering and CV/renal benefit (glycosuric effect intact ≥45)."
         colour = "green"
     elif egfr >= 45:
         stage = "G3a (Mildly–moderately reduced)"
-        mgmt  = "Metformin: reduce dose (max 1000 mg BD). SGLT2i: may continue for CV/renal benefit. DPP-4i: dose adjustment (Sitagliptin 50 mg)."
+        mgmt  = "Metformin: reduce dose (max 1000 mg BD, use with caution). SGLT2i: continue for CV/renal benefit; glucose-lowering effect diminishes — consider not initiating below 45 purely for glucose. Sitagliptin: reduce to 50 mg OD (full dose threshold is eGFR ≥45)."
         colour = "orange"
     elif egfr >= 30:
         stage = "G3b (Moderately–severely reduced)"
-        mgmt  = "METFORMIN CONTRAINDICATED. SGLT2i stop for glucose lowering (continue for CV/renal if eGFR ≥ 20). Sitagliptin 25 mg. Refer nephrology."
+        mgmt  = "METFORMIN CONTRAINDICATED (eGFR <30). SGLT2i: do NOT initiate for glucose lowering; Empagliflozin/Dapagliflozin may continue for CV/renal benefit if already on treatment (down to eGFR 20/25 respectively). Sitagliptin 25 mg OD. Refer nephrology."
         colour = "orange"
     elif egfr >= 15:
         stage = "G4 (Severely reduced)"
@@ -184,12 +184,22 @@ def interpret_egfr(egfr: float, uacr: float = None) -> dict:
         "management":  mgmt,
         "UACR":        uacr_interp,
         "drug_doses": {
-            "Metformin":      "Full" if egfr >= 45 else ("Use with caution" if egfr >= 30 else "CONTRAINDICATED"),
-            "Sitagliptin":    "100 mg" if egfr >= 50 else ("50 mg" if egfr >= 30 else "25 mg"),
-            "Empagliflozin":  "10–25 mg" if egfr >= 45 else ("CV/renal benefit only, 10 mg" if egfr >= 20 else "STOP"),
-            "Glimepiride":    "Use with caution" if egfr >= 30 else "AVOID (prolonged hypoglycaemia)",
-            "GLP-1 RA":       "Full dose (no renal dose adj needed)" if egfr >= 15 else "Not studied — use with caution",
-            "Degludec":       "Preferred (lower hypo risk with reduced renal clearance)",
+            "Metformin":       "Full dose" if egfr >= 45 else ("Halve dose, use with caution (max 1000 mg BD)" if egfr >= 30 else "CONTRAINDICATED"),
+            "Sitagliptin":     "100 mg OD" if egfr >= 45 else ("50 mg OD" if egfr >= 30 else "25 mg OD (including dialysis)"),
+            "Empagliflozin":   ("10–25 mg OD — full glucose + CV/renal benefit" if egfr >= 45
+                                else ("10 mg OD — CV/renal benefit only; do not initiate for glucose lowering" if egfr >= 20
+                                      else "STOP (eGFR < 20 — benefit unproven below this threshold)")),
+            "Dapagliflozin":   ("10 mg OD — full glucose + CV/renal benefit" if egfr >= 45
+                                else ("10 mg OD — CKD/HF benefit only (DAPA-CKD ≥25); do not initiate for glucose lowering" if egfr >= 25
+                                      else "STOP (eGFR < 25)")),
+            "Canagliflozin":   ("100–300 mg OD — full glucose + CV benefit" if egfr >= 45
+                                else ("100 mg OD — renal benefit only (CREDENCE: eGFR 30–90)" if egfr >= 30
+                                      else "STOP (eGFR < 30)")),
+            "Glimepiride":     "Use with caution — risk of prolonged hypoglycaemia" if egfr >= 30 else "AVOID (eGFR < 30 — severe prolonged hypoglycaemia risk)",
+            "Gliclazide MR":   "Standard dose — can use cautiously to eGFR 30" if egfr >= 30 else "AVOID (eGFR < 30)",
+            "Repaglinide":     "Safe at all eGFR (hepatic clearance) — preferred secretagogue in CKD" if egfr >= 15 else "Use with extreme caution",
+            "GLP-1 RA":        "Full dose — no renal dose adjustment required" if egfr >= 15 else "Not studied in dialysis — use with caution",
+            "Degludec":        "Preferred basal in CKD (lowest hypoglycaemia risk — reduced insulin clearance increases duration)",
         },
         "ref": "ADA Standards 2024, Section 11; RSSDI CPR 2023; Kidney Disease: Improving Global Outcomes (KDIGO) 2022"
     }
