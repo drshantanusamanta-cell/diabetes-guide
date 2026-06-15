@@ -30,13 +30,14 @@ DKA_PROTOCOL = {
         "Identify and treat precipitant: infection (50%), omitted insulin, new T1DM",
     ],
     "fluid_replacement": {
-        "protocol":       "0.9% NaCl (Normal Saline) — weight-based, NOT fixed rate",
+        "protocol":       "0.9% NaCl (Normal Saline) — rates below are for average adults (60–90 kg). INDIVIDUALISE for extremes of weight, elderly, cardiac compromise, and children.",
         "first_litre":    "1 litre 0.9% NaCl over 1 hour",
         "second_litre":   "1 litre 0.9% NaCl over next 2 hours",
         "third_litre":    "1 litre 0.9% NaCl over next 2 hours",
-        "thereafter":     "1 litre 0.9% NaCl every 4 hours — guided by clinical response",
-        "switch_to_dextrose": "When glucose < 14 mmol/L (252 mg/dL): switch to 10% Dextrose at 125 mL/hr alongside 0.9% NaCl",
-        "caution":        "⚠️ Avoid rapid fluid shifts in children and elderly — cerebral oedema risk",
+        "thereafter":     "1 litre 0.9% NaCl every 4 hours — guided by clinical response and urine output",
+        "switch_to_dextrose": "When glucose < 14 mmol/L (252 mg/dL): add 10% Dextrose at 125 mL/hr alongside continuing 0.9% NaCl (do not stop saline)",
+        "caution":        "⚠️ Avoid rapid fluid shifts in children and elderly — cerebral oedema risk. Reduce rate in cardiac or renal compromise. Seek senior review if weight > 90 kg or < 60 kg, or if haemodynamically unstable.",
+        "weight_note":    "JBDS 2023: Fluid replacement should be weight-based and guided by clinical response (HR, BP, urine output, JVP). These fixed rates are appropriate for uncomplicated adult DKA of average weight. Adjust for extreme body weight (use ideal body weight for obese patients).",
     },
     "insulin": {
         "type":         "ONLY Regular Human Insulin (Actrapid / Huminsulin R / Insugen R) for IV infusion",
