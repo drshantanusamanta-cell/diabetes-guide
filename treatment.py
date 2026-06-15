@@ -22,7 +22,9 @@ def recommend_treatment(inputs: dict) -> dict:
       sglt2_allergy, glp1_ok, obesity (BMI>27), hypo_concern,
       cost_preference ('low'/'medium'/'any'),
       on_metformin, current_drugs (list of drug names),
-      age, pregnancy, dm_type ('T2DM'/'LADA'/'FCPD'/'T1DM')
+      age, pregnancy, dm_type ('T2DM'/'LADA'/'FCPD'/'T1DM'),
+      has_nash_ir (bool) — NASH/NAFLD, PCOS, or documented high HOMA-IR (specific indication for Pioglitazone),
+      bladder_cancer (bool) — history of bladder cancer (Pioglitazone contraindication)
     Returns: dict with 'steps' list, 'notes', 'refs'
     """
     hba1c          = inputs.get("hba1c", 8.0)
@@ -37,9 +39,11 @@ def recommend_treatment(inputs: dict) -> dict:
     cost_pref      = inputs.get("cost_preference", "any")
     on_metformin   = inputs.get("on_metformin", False)
     current_drugs  = inputs.get("current_drugs", [])
-    age               = inputs.get("age", 50)
-    dm_type           = inputs.get("dm_type", "T2DM")
+    age                = inputs.get("age", 50)
+    dm_type            = inputs.get("dm_type", "T2DM")
     irregular_schedule = inputs.get("irregular_schedule", False)
+    has_nash_ir        = inputs.get("has_nash_ir", False)      # NASH/NAFLD / PCOS / high HOMA-IR
+    bladder_cancer     = inputs.get("bladder_cancer", False)   # Pioglitazone contraindication
 
     steps = []
     notes = []
@@ -241,28 +245,38 @@ def recommend_treatment(inputs: dict) -> dict:
                 "ref":        ORAL_DRUGS["Sitagliptin"]["ref"],
             })
 
-        # ── 3c. Pioglitazone (NASH / significant insulin resistance) ──
-        # Indicated when HOMA-IR is high, NASH confirmed, or obesity-driven IR
-        # Not suitable if: HF, active bladder cancer, osteoporosis, macular oedema
+        # ── 3c. Pioglitazone — ONLY when specific indication is present AND no key contraindications
+        # Indications: NASH/NAFLD confirmed, PCOS with IR, documented high HOMA-IR (>2.5), obesity-driven IR
+        # Contraindications: HF (any class — black box warning for III–IV; avoid I–II too), bladder cancer
         pio = ORAL_DRUGS["Pioglitazone"]
-        steps.append({
-            "step":      "3c. Consider Pioglitazone (insulin resistance / NASH / PCOS)",
-            "rationale": (
-                "Thiazolidinedione — most potent insulin sensitiser. "
-                "Indicated when HOMA-IR elevated, NASH/NAFLD confirmed (improves hepatic steatosis and fibrosis — PIVENS trial), "
-                "or PCOS with IR. PROactive trial: trend to ↓ MACE in T2DM. "
-                "Not for HF (fluid retention), bladder cancer risk, osteoporosis, or macular oedema. "
-                "Slow onset — allow 8–12 weeks for full effect [ADA Standards 2024, Section 9; RSSDI CPR 2023]."
-            ),
-            "drug":      "Pioglitazone 15–30 mg OD",
-            "dose":      f"{pio['start_dose']} → max {pio['max_dose']}",
-            "brands":    _brand_str(pio["brands"]),
-            "hba1c_reduction": pio["HbA1c_reduction"],
-            "hypo_risk": pio["hypo_risk"],
-            "confidence": "High",
-            "ref":        pio["ref"],
-        })
-        notes.append("⚠️ Pioglitazone: Screen for HF, bladder cancer history, osteoporosis, macular oedema BEFORE starting. Monitor weight and oedema.")
+        pio_contraindicated = has_hf or bladder_cancer
+        if has_nash_ir and not pio_contraindicated:
+            steps.append({
+                "step":      "3c. Add Pioglitazone (specific indication: NASH / PCOS / documented IR)",
+                "rationale": (
+                    "Thiazolidinedione — most potent insulin sensitiser available orally. "
+                    "PIVENS trial: Pioglitazone 30 mg improved NASH histology (steatosis, inflammation, fibrosis score) "
+                    "vs placebo (Sanyal AJ et al., NEJM 2010). "
+                    "PCOS with IR: restores ovulation, improves androgen excess. "
+                    "PROactive trial: significant 16% RRR in secondary MACE endpoint (HR 0.84, p=0.027) in T2DM. "
+                    "CONTRAINDICATED in HF (any class — fluid retention risk; FDA black box for NYHA III–IV). "
+                    "Slow onset — allow 8–12 weeks for full glycaemic effect [ADA Standards 2024, Section 9; RSSDI CPR 2023]."
+                ),
+                "drug":      "Pioglitazone 15 mg OD (starting dose)",
+                "dose":      f"{pio['start_dose']} → max {pio['max_dose']}",
+                "brands":    _brand_str(pio["brands"]),
+                "hba1c_reduction": pio["HbA1c_reduction"],
+                "hypo_risk": pio["hypo_risk"] + " (hypoglycaemia risk low as monotherapy; increases when combined with SU or insulin)",
+                "confidence": "High",
+                "ref":        pio["ref"],
+            })
+            notes.append("⚠️ Pioglitazone MANDATORY screening before starting: heart failure (NYHA any class), bladder cancer history, osteoporosis/fragility fracture, macular oedema, active hepatic disease. Monitor weight and leg oedema monthly for first 3 months.")
+        elif has_nash_ir and pio_contraindicated:
+            notes.append(
+                "ℹ️ Pioglitazone indicated for NASH/IR but CONTRAINDICATED in this patient "
+                f"({'heart failure' if has_hf else ''}{' + ' if has_hf and bladder_cancer else ''}{'bladder cancer history' if bladder_cancer else ''}). "
+                "Consider Vitamin E 800 IU/day (PIVENS trial) for NASH; GLP-1 RA also improves hepatic steatosis."
+            )
 
     # ── Step 4b: Combination injectable (iGlarLixi / IDegLira) ──
     # Intensification option BEFORE full MDI — when basal insulin alone insufficient
@@ -489,14 +503,23 @@ def calculate_insulin_dose(weight_kg: float, hba1c: float, dm_type: str,
             tdd = round(weight_kg * 0.5)
         basal = round(tdd * 0.5)
         bolus_per_meal = round(tdd * 0.5 / 3)
+        # PPG target differs by DM type:
+        # T1DM/LADA: <140 mg/dL (7.8 mmol/L) at 2 hr — tighter postprandial target (ADA 2024 Sec 7; ISPAD 2022)
+        # T2DM/FCPD: <180 mg/dL (10 mmol/L) at 1–2 hr — standard (ADA 2024 Sec 9; RSSDI CPR 2023)
+        if dm_type in ("T1DM", "LADA"):
+            ppg_target = "< 140 mg/dL (7.8 mmol/L) at 2 hr — T1DM/LADA tighter target [ADA 2024 Sec 7; ISPAD 2022]"
+            ppg_ref    = "ADA Standards 2024, Section 7; ISPAD Clinical Practice Consensus Guidelines 2022"
+        else:
+            ppg_target = "< 180 mg/dL (10 mmol/L) at 1–2 hr — T2DM/FCPD standard target [ADA 2024 Sec 9; RSSDI CPR 2023]"
+            ppg_ref    = "ADA Standards 2024, Section 9; RSSDI CPR 2023"
         result = {
             "estimated_TDD":        f"{tdd} units/day",
             "basal_dose":           f"{basal} units/day (50% of TDD)",
             "bolus_per_meal":       f"{bolus_per_meal} units per meal (starting point)",
             "correction_factor":    f"1 unit lowers glucose by ~{round(1700 / tdd)} mg/dL (1700 rule)",
             "ICR":                  f"1 unit covers ~{round(500 / tdd)} g carbohydrate (500 rule)",
-            "titration":            "Adjust bolus based on 2-hr PPG target < 180 mg/dL (10 mmol/L)",
-            "ref":                  "ADA Standards 2024, Section 7; ISPAD 2022",
+            "titration":            f"Adjust bolus based on 2-hr PPG target {ppg_target}",
+            "ref":                  ppg_ref,
         }
 
     elif insulin_type == "basal_titration":
