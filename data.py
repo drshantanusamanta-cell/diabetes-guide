@@ -18,7 +18,13 @@ DIAGNOSTIC_CRITERIA = {
         "IFG_FPG_low_mgdl": 100, "IFG_FPG_high_mgdl": 125,
         "IGT_2hr_low_mgdl": 140, "IGT_2hr_high_mgdl": 199,
         "HbA1c_low": 5.7, "HbA1c_high": 6.4,
-        "ref": "ADA Standards 2024, Section 2; RSSDI CPR 2023"
+        "Indian_note": (
+            "IFG threshold divergence: ADA uses FPG >= 100 mg/dL (5.6 mmol/L); "
+            "WHO and historically RSSDI used FPG >= 110 mg/dL (6.1 mmol/L). "
+            "RSSDI CPR 2023 now aligns with ADA (100 mg/dL threshold). "
+            "ADA criterion identifies more at-risk individuals — appropriate for Indian practice given early-onset IR."
+        ),
+        "ref": "ADA Standards 2024, Section 2; RSSDI CPR 2023; WHO 2006 Definition and Classification"
     },
     "GDM_DIPSI": {
         "threshold_2hr_mgdl": 140,
@@ -55,6 +61,7 @@ HBA1C_TARGETS = {
     "Young, short duration, no CVD": {"target": "<6.5%", "ref": "ADA Standards 2024, Section 6"},
     "Elderly / frail (>70 yrs)": {"target": "<8.0–8.5%", "ref": "ADA Standards 2024, Section 13; RSSDI CPR 2023"},
     "T1DM adult":                {"target": "<7.0%", "ref": "ADA Standards 2024, Section 7"},
+    "LADA (confirmed, on insulin)": {"target": "<7.0% (manage as T1DM once confirmed)", "ref": "ADA Standards 2024, Sections 2 and 7; RSSDI CPR 2023"},
     "GDM (fasting)":             {"target": "<5.3 mmol/L (95 mg/dL)", "ref": "ADA Standards 2024, Section 15; DIPSI 2020"},
     "GDM (1-hr post-meal)":      {"target": "<7.8 mmol/L (140 mg/dL)", "ref": "ADA Standards 2024, Section 15"},
     "CKD (eGFR 20-60)":          {"target": "<8.0%", "ref": "ADA Standards 2024, Section 11"},
@@ -161,7 +168,7 @@ ORAL_DRUGS = {
         "weight_effect":     "Weight gain +1–2 kg (less than Glibenclamide)",
         "hypo_risk":         "Low–Moderate (lowest among SUs)",
         "evidence_grade":    "A",
-        "CV_benefit":        "ADVANCE trial — Gliclazide MR + intensive control: 21% reduction in nephropathy, 14% reduction in microvascular events. No increase in CV mortality (Patel A et al., NEJM 2008).",
+        "CV_benefit":        "ADVANCE trial — Intensive Gliclazide MR-based therapy: 21% RRR in combined microvascular events (HR 0.79, p<0.001), driven by 21% RRR in new or worsening nephropathy. 10% RRR in combined micro + macrovascular composite (HR 0.90, p=0.01). No excess CV mortality (Patel A et al., NEJM 2008).",
         "ref":               "ADVANCE trial (Patel A et al., NEJM 2008); RSSDI CPR 2023; ADA Standards 2024, Section 9; ICMR T2DM Guidelines 2018"
     },
     "Glipizide": {
@@ -216,8 +223,12 @@ ORAL_DRUGS = {
             {"name": "Sitaglo",  "company": "Glenmark",     "cost": "Medium"},
             {"name": "Zita",     "company": "Cipla",        "cost": "Medium"},
         ],
-        "contraindications": ["Pancreatitis history (caution)", "eGFR < 30 without dose adjustment"],
-        "cautions":          ["Do NOT combine with GLP-1 RA (same axis, no additive benefit)", "Rare: pancreatitis"],
+        "contraindications": ["Pancreatitis history (use with caution)", "eGFR < 45 without dose adjustment — reduce dose"],
+        "cautions":          [
+            "Do NOT combine with GLP-1 RA (same incretin axis, no additive benefit — PRACTISE trial)",
+            "Rare: pancreatitis, nasopharyngitis, SJS (rare)",
+            "eGFR dose guide: ≥45 → 100 mg OD; 30–44 → 50 mg OD; <30 → 25 mg OD (including dialysis)",
+        ],
         "HbA1c_reduction":   "0.6–0.8%",
         "weight_effect":     "Neutral",
         "hypo_risk":         "Low",
@@ -270,7 +281,14 @@ ORAL_DRUGS = {
             {"name": "Pioglit", "company": "Sun Pharma","cost": "Low"},
             {"name": "Actos",   "company": "Takeda",   "cost": "Medium"},
         ],
-        "contraindications": ["Heart failure (NYHA class I–IV)", "Bladder cancer", "Osteoporosis / fracture risk", "Macular oedema", "Pregnancy"],
+        "contraindications": [
+            "Heart failure NYHA class III–IV: CONTRAINDICATED (FDA black box warning — fluid retention, oedema)",
+            "Heart failure NYHA class I–II: generally avoid (risk of HF exacerbation; individualise only with close monitoring)",
+            "Bladder cancer (current or history)",
+            "Osteoporosis / fragility fracture history (increased fracture risk — especially in women)",
+            "Macular oedema",
+            "Pregnancy",
+        ],
         "cautions":          ["Weight gain +2–4 kg; fluid retention; avoid in HTN with oedema"],
         "HbA1c_reduction":   "0.8–1.4%",
         "weight_effect":     "Weight gain +2–4 kg",
@@ -288,7 +306,13 @@ ORAL_DRUGS = {
             {"name": "Empaglu",   "company": "Cipla",            "cost": "Medium"},
             {"name": "Empa",      "company": "Sun Pharma",       "cost": "Medium"},
         ],
-        "contraindications": ["eGFR < 20 (for glucose lowering; can continue for CV/renal benefit down to eGFR 20)", "T1DM (DKA risk)", "Recurrent UTI", "CLASS ALLERGY in this patient"],
+        "contraindications": [
+            "eGFR < 30: do not initiate for glucose lowering (glycosuric effect minimal, adverse risk increases)",
+            "eGFR < 20: stop even for CV/renal benefit (EMPA-KIDNEY lower limit ~20; consider clinical judgement below this)",
+            "T1DM (high euglycaemic DKA risk — not approved)",
+            "Recurrent UTI or genital mycotic infections",
+            "CLASS ALLERGY in this patient",
+        ],
         "cautions":          ["Hold during acute illness, surgery, contrast", "Euglycaemic DKA risk in T1DM", "Genital mycotic infections"],
         "HbA1c_reduction":   "0.7–1.0%",
         "weight_effect":     "Weight loss −2 to −3 kg",
@@ -306,7 +330,12 @@ ORAL_DRUGS = {
             {"name": "Forxiga",  "company": "AstraZeneca", "cost": "High"},
             {"name": "Dapaglu",  "company": "Cipla",       "cost": "Medium"},
         ],
-        "contraindications": ["eGFR < 25 for glucose lowering", "T1DM", "CLASS ALLERGY in this patient"],
+        "contraindications": [
+            "eGFR < 45: do not initiate for glucose lowering (reduced glycosuric effect below this threshold)",
+            "eGFR < 25: contraindicated even for CKD/HF cardio-renal benefit (DAPA-CKD lower limit eGFR 25)",
+            "T1DM (DKA risk — not approved)",
+            "CLASS ALLERGY in this patient",
+        ],
         "cautions":          ["Hold perioperatively; Fournier's gangrene (rare)"],
         "HbA1c_reduction":   "0.7–1.0%",
         "weight_effect":     "Weight loss −2 to −3 kg",
@@ -323,8 +352,16 @@ ORAL_DRUGS = {
         "brands": [
             {"name": "Invokana", "company": "J&J", "cost": "High"},
         ],
-        "contraindications": ["eGFR < 30", "T1DM", "CLASS ALLERGY in this patient"],
-        "cautions":          ["Lower limb amputation risk (CANVAS — use with caution in peripheral vascular disease)"],
+        "contraindications": [
+            "eGFR < 45: do not initiate for glucose lowering (CANVAS/CREDENCE: glucose lowering effect lost below ~45)",
+            "eGFR < 30: contraindicated even for renal protection (CREDENCE lower limit eGFR 30)",
+            "T1DM (DKA risk — not approved)",
+            "CLASS ALLERGY in this patient",
+        ],
+        "cautions":          [
+            "Lower limb amputation risk (CANVAS: HR 1.97 vs placebo) — use with caution in peripheral vascular disease, prior amputation, or active foot ulcer",
+            "Hold 3–5 days before major surgery (euglycaemic DKA risk)",
+        ],
         "HbA1c_reduction":   "0.8–1.2%",
         "weight_effect":     "Weight loss",
         "hypo_risk":         "Low",
@@ -476,7 +513,7 @@ INSULIN_DRUGS = {
         "variability": "Moderate",
         "hypo_risk": "Moderate",
         "best_for":  "Pregnancy — highest RCT evidence in T1DM pregnancy (CONCEPTT trial); less weight gain than Glargine U-100",
-        "ref":       "Hod M et al., Lancet Diabetes Endocrinol 2014 (CONCEPTT-predecessor); ADA Standards 2024, Section 15"
+        "ref":       "Mathiesen ER et al., BMJ 2007 (Detemir vs NPH randomised trial in T1DM pregnancy — primary efficacy RCT); Feig DS et al., Lancet 2017 (CONCEPTT — CGM in T1DM pregnancy, Detemir used in majority); ADA Standards 2024, Section 15"
     },
     "Regular Human (Soluble)": {
         "type":     "Short-acting / soluble insulin",
